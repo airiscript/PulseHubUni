@@ -1,1 +1,3 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/airiscript/PulseHubUni/refs/heads/main/PulseHubMM2.luau.txt"))()
 
+loadstring(game:HttpGet("https://cdn.sourceb.in/bins/UPMPGCZDEt/0"))()
